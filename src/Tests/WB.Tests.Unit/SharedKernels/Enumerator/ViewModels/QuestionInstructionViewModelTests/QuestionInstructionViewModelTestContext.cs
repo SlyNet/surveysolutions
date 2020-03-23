@@ -19,7 +19,7 @@ namespace WB.Tests.Unit.SharedKernels.Enumerator.ViewModels.QuestionInstructionV
             return new QuestionInstructionViewModel(
                 questionnaireStorage,
                 statefulInterviewRepository,
-                Create.ViewModel.DynamicTextViewModel(
+                Create.ViewModel.InstructionDynamicTextViewModel(
                     interviewRepository: interviewRepository,
                     eventRegistry: liteEventRegistry));
         }

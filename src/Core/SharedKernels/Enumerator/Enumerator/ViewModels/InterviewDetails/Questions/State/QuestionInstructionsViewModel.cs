@@ -19,7 +19,7 @@ namespace WB.Core.SharedKernels.Enumerator.ViewModels.InterviewDetails.Questions
         public QuestionInstructionViewModel(
             IQuestionnaireStorage questionnaireRepository,
             IStatefulInterviewRepository interviewRepository,
-            DynamicTextViewModel instruction)
+            InstructionDynamicTextViewModel instruction)
         {
             this.questionnaireRepository = questionnaireRepository;
             this.interviewRepository = interviewRepository;
@@ -27,7 +27,7 @@ namespace WB.Core.SharedKernels.Enumerator.ViewModels.InterviewDetails.Questions
             this.Instruction = instruction;
         }
 
-        public DynamicTextViewModel Instruction { get; private set; }
+        public InstructionDynamicTextViewModel Instruction { get; private set; }
 
         private bool isInstructionsHidden;
         public bool IsInstructionsHidden
@@ -50,7 +50,7 @@ namespace WB.Core.SharedKernels.Enumerator.ViewModels.InterviewDetails.Questions
             this.IsInstructionsHidden = questionnaire.GetHideInstructions(questionIdentity.Id);
             this.Identity = questionIdentity;
 
-            this.Instruction.InitAsInstructions(interviewId, questionIdentity);
+            this.Instruction.Init(interviewId, questionIdentity);
         }
 
         public string InterviewId { get; private set; }

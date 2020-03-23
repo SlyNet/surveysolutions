@@ -1,18 +1,17 @@
 ﻿using WB.Core.GenericSubdomains.Portable.Services;
 using WB.Core.Infrastructure.EventBus.Lite;
 using WB.Core.SharedKernels.DataCollection;
+using WB.Core.SharedKernels.DataCollection.Aggregates;
 using WB.Core.SharedKernels.DataCollection.Repositories;
 using WB.Core.SharedKernels.Enumerator.Services.Infrastructure;
 
 namespace WB.Core.SharedKernels.Enumerator.ViewModels.InterviewDetails.Questions.State
 {
-    public class ErrorMessageViewModel : DynamicTextViewModel, IInterviewEntity
+    public class ErrorMessageViewModel : BaseDynamicTextViewModel, IInterviewEntity
     {
-        public ErrorMessageViewModel(IViewModelEventRegistry eventRegistry,
-            IStatefulInterviewRepository interviewRepository,
-            ISubstitutionService substitutionService,
-            IQuestionnaireStorage questionnaireStorage) : 
-                base(eventRegistry, interviewRepository, substitutionService, questionnaireStorage)
+        public ErrorMessageViewModel(IViewModelEventRegistry eventRegistry, IStatefulInterviewRepository interviewRepository, 
+            ISubstitutionService substitutionService, IQuestionnaireStorage questionnaireStorage, AnswerNotifier answerNotifier) 
+            : base(eventRegistry, interviewRepository, substitutionService, questionnaireStorage, answerNotifier)
         {
         }
 
@@ -28,5 +27,9 @@ namespace WB.Core.SharedKernels.Enumerator.ViewModels.InterviewDetails.Questions
         public string InterviewId { get; private set; }
         public Identity Identity { get; private set; }
         public NavigationState NavigationState { get; private set; }
+        protected override string GetBrowserReadyTextHtml(IStatefulInterview interview)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

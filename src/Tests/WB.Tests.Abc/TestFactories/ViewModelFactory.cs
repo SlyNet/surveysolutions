@@ -70,7 +70,20 @@ namespace WB.Tests.Abc.TestFactories
                 interviewRepository: interviewRepository,
                 substitutionService: Create.Service.SubstitutionService(),
                 questionnaireStorage: questionnaireStorage ?? 
-                    Mock.Of<IQuestionnaireStorage>(x => x.GetQuestionnaire(It.IsAny<QuestionnaireIdentity>(), It.IsAny<string>()) == Mock.Of<IQuestionnaire>()));
+                    Mock.Of<IQuestionnaireStorage>(x => x.GetQuestionnaire(It.IsAny<QuestionnaireIdentity>(), It.IsAny<string>()) == Mock.Of<IQuestionnaire>()),
+                Mock.Of<AnswerNotifier>());
+
+        public InstructionDynamicTextViewModel InstructionDynamicTextViewModel(
+            IViewModelEventRegistry eventRegistry = null, 
+            IStatefulInterviewRepository interviewRepository = null,
+            IQuestionnaireStorage questionnaireStorage = null)
+            => new InstructionDynamicTextViewModel(
+                eventRegistry ?? Create.Service.LiteEventRegistry(),
+                interviewRepository: interviewRepository,
+                substitutionService: Create.Service.SubstitutionService(),
+                questionnaireStorage: questionnaireStorage ?? 
+                    Mock.Of<IQuestionnaireStorage>(x => x.GetQuestionnaire(It.IsAny<QuestionnaireIdentity>(), It.IsAny<string>()) == Mock.Of<IQuestionnaire>()),
+                Mock.Of<AnswerNotifier>());
 
         public ErrorMessageViewModel ErrorMessageViewModel(
             IViewModelEventRegistry eventRegistry = null,
@@ -81,7 +94,8 @@ namespace WB.Tests.Abc.TestFactories
                 interviewRepository: interviewRepository,
                 substitutionService: Create.Service.SubstitutionService(),
                 questionnaireStorage: questionnaireStorage ??
-                    Mock.Of<IQuestionnaireStorage>(x => x.GetQuestionnaire(It.IsAny<QuestionnaireIdentity>(), It.IsAny<string>()) == Mock.Of<IQuestionnaire>()));
+                    Mock.Of<IQuestionnaireStorage>(x => x.GetQuestionnaire(It.IsAny<QuestionnaireIdentity>(), It.IsAny<string>()) == Mock.Of<IQuestionnaire>()),
+                Mock.Of<AnswerNotifier>());
 
         public EnumerationStageViewModel EnumerationStageViewModel(
             IInterviewViewModelFactory interviewViewModelFactory = null,
@@ -209,7 +223,7 @@ namespace WB.Tests.Abc.TestFactories
                 statefulInterviewRepository,
                 questionStateViewModel,
                 new QuestionInstructionViewModel(questionnaireRepository, statefulInterviewRepository, 
-                    new DynamicTextViewModel(eventRegistry ?? Stub<IViewModelEventRegistry>.WithNotEmptyValues, statefulInterviewRepository, new SubstitutionService(), questionnaireStorage)),
+                    new InstructionDynamicTextViewModel(eventRegistry ?? Stub<IViewModelEventRegistry>.WithNotEmptyValues, statefulInterviewRepository, new SubstitutionService(), questionnaireStorage, Mock.Of<AnswerNotifier>())),
                 answering ?? this.AnsweringViewModel());
         }
 
