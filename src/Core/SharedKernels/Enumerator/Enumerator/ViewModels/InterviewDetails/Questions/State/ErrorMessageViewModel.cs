@@ -15,8 +15,6 @@ namespace WB.Core.SharedKernels.Enumerator.ViewModels.InterviewDetails.Questions
         {
         }
 
-        public string ItemTag => base.identity + "_Msg";
-
         public void InitializeNavigation(string interviewId, Identity entityIdentity, NavigationState navigationState)
         {
             this.InterviewId = interviewId;

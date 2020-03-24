@@ -43,6 +43,8 @@ namespace WB.Core.SharedKernels.Enumerator.ViewModels.InterviewDetails
         private string interviewId;
         protected Identity identity;
 
+        public string ItemTag => identity + "_Msg";
+
         public void InitAsStatic(string textWithoutSubstitutions, Identity entityId = null)
         {
             this.HtmlText = textWithoutSubstitutions ?? throw new ArgumentNullException(nameof(textWithoutSubstitutions));

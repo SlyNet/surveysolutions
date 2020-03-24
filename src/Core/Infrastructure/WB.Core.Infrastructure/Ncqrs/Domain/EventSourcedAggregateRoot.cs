@@ -39,7 +39,9 @@ namespace Ncqrs.Domain
         {
             base.OnEventApplied(appliedEvent);
 
-            this.changes.Add(appliedEvent);
+            var isShouldStore = IsShouldStoreEvent(appliedEvent.Payload);
+            if (isShouldStore)
+                this.changes.Add(appliedEvent);
 
             var callbacks = _eventAppliedCallbacks.Value;
 

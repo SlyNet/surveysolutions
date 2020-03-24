@@ -119,6 +119,11 @@ namespace Ncqrs.Eventing.Sourcing
                 throw new EventNotHandledException(evnt);
         }
 
+        protected virtual bool IsShouldStoreEvent(WB.Core.Infrastructure.EventBus.IEvent @event)
+        {
+            return true;
+        }
+
         protected internal virtual void ApplyEvent(WB.Core.Infrastructure.EventBus.IEvent evnt)
         {
             var eventSequence = GetNextSequence();

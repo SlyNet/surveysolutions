@@ -86,6 +86,14 @@ namespace WB.Core.SharedKernels.DataCollection.Implementation.Aggregates
             this.changedTree = null;
         }
 
+        protected override bool IsShouldStoreEvent(IEvent @event)
+        {
+            if (@event is SubstitutionTitlesChanged)
+                return false;
+
+            return base.IsShouldStoreEvent(@event);
+        }
+
         private ILatestInterviewExpressionState expressionProcessorStatePrototype = null;
         protected ILatestInterviewExpressionState ExpressionProcessorStatePrototype
         {
