@@ -472,7 +472,9 @@ namespace WB.Core.SharedKernels.Enumerator.Views
                     {
                         this.ValidateStreamVersion(connection, eventStream);
 
-                        var storedEvents = eventStream.Select(x => ToStoredEvent(x, serializer));
+                        var storedEvents = eventStream
+                            .Where(x => x.NeedStoreToEventStore)
+                            .Select(x => ToStoredEvent(x, serializer));
 
                         foreach (var @event in storedEvents)
                         {
@@ -565,7 +567,8 @@ namespace WB.Core.SharedKernels.Enumerator.Views
                 eventSequence: storedEvent.EventSequence,
                 eventTimeStamp: storedEvent.EventTimeStamp,
                 globalSequence: -1,
-                payload: storedEvent.Payload);
+                payload: storedEvent.Payload,
+                isStored: storedEvent.NeedStoreToEventStore);
 
         private EventView ToStoredEvent(UncommittedEvent evt, IEventSerializer serializer)
             => new EventView
