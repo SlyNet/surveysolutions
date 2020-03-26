@@ -22,9 +22,9 @@ namespace WB.Core.SharedKernels.Enumerator.ViewModels.InterviewDetails
             var interview = this.interviewRepository.Get(interviewId);
             var questionnaire = this.questionnaireStorage.GetQuestionnaire(interview.QuestionnaireIdentity, interview.Language);
 
-            this.shouldAppendRosterTitle = questionnaire.IsRosterGroup(this.identity.Id) &&
-                                           !questionnaire.HasCustomRosterTitle(this.identity.Id);
-
+            this.shouldAppendRosterTitle = questionnaire.IsRosterGroup(entityIdentity.Id) &&
+                                           !questionnaire.HasCustomRosterTitle(entityIdentity.Id);
+             
             base.Init(interviewId, entityIdentity);
         }
 
