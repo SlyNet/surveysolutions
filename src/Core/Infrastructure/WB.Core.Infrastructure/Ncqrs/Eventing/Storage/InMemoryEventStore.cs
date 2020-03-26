@@ -52,8 +52,14 @@ namespace Ncqrs.Eventing.Storage
                         evnt.EventSequence,
                         evnt.EventTimeStamp, 
                         events.Count,
-                        evnt.Payload);
-                    events.Enqueue(committedEvent);
+                        evnt.Payload,
+                        evnt.NeedStoreToEventStore);
+
+                    if (evnt.NeedStoreToEventStore)
+                    {
+                        events.Enqueue(committedEvent);
+                    }
+
                     result.Add(committedEvent);   
                 }
 
@@ -62,7 +68,5 @@ namespace Ncqrs.Eventing.Storage
 
             return new CommittedEventStream(eventStream.SourceId);
         }
-
-       
     }
 }

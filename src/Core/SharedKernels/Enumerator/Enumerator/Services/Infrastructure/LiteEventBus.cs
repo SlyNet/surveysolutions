@@ -29,8 +29,12 @@ namespace WB.Core.SharedKernels.Enumerator.Services.Infrastructure
             this.logger = logger;
         }
 
-        public IReadOnlyCollection<CommittedEvent> CommitUncommittedEvents(IEventSourcedAggregateRoot aggregateRoot, string origin) =>
-            this.eventStore.Store(new UncommittedEventStream(origin, aggregateRoot.GetUnCommittedChanges()));
+        public IReadOnlyCollection<CommittedEvent> CommitUncommittedEvents(IEventSourcedAggregateRoot aggregateRoot, string origin)
+        {
+            var uncommittedEvents = aggregateRoot.GetUnCommittedChanges();
+
+            return this.eventStore.Store(new UncommittedEventStream(origin, uncommittedEvents));
+        }
 
         public void PublishCommittedEvents(IReadOnlyCollection<CommittedEvent> committedEvents)
         {

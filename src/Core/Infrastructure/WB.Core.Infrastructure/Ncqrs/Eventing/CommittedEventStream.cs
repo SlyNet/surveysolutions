@@ -90,14 +90,17 @@ namespace Ncqrs.Eventing
 
             var expectedSourceId = _sourceId;
             var expectedSequence = startSequence;
+            var nonStoredEventsCount = 0;
 
             ValidateSingleEvent(firstEvent, 0, expectedSourceId, expectedSequence);
 
             for(int position = 1; position < _events.Count; position++)
             {
                 var evnt = _events[position];
+                if (evnt?.IsStored == false)
+                    nonStoredEventsCount++;
                 expectedSourceId = _sourceId;
-                expectedSequence = startSequence + position;
+                expectedSequence = startSequence + position - nonStoredEventsCount;
 
                 ValidateSingleEvent(evnt, position, expectedSourceId, expectedSequence);
             }

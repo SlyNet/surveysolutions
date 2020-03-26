@@ -126,10 +126,11 @@ namespace Ncqrs.Eventing.Sourcing
 
         protected internal virtual void ApplyEvent(WB.Core.Infrastructure.EventBus.IEvent evnt)
         {
-            var eventSequence = IsShouldStoreEvent(evnt) 
+            var isShouldStoreEvent = IsShouldStoreEvent(evnt);
+            var eventSequence = isShouldStoreEvent
                 ? GetNextSequence()
                 : GetLastSequence();
-            var wrappedEvent = new UncommittedEvent(Guid.NewGuid(), EventSourceId, eventSequence, _initialVersion, DateTime.UtcNow, evnt);
+            var wrappedEvent = new UncommittedEvent(Guid.NewGuid(), EventSourceId, eventSequence, _initialVersion, DateTime.UtcNow, evnt, isShouldStoreEvent);
 
             try
             {

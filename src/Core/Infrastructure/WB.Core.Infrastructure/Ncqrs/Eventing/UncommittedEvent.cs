@@ -91,6 +91,8 @@ namespace Ncqrs.Eventing
             get { return _origin; }
         }
 
+        public bool NeedStoreToEventStore { get; private set; }
+
         public void OnAppendedToStream(Guid streamCommitId, string streamOrigin)
         {
             _commitId = streamCommitId;
@@ -102,7 +104,8 @@ namespace Ncqrs.Eventing
             int eventSequence, 
             int initialVersionOfEventSource, 
             DateTime eventTimeStamp, 
-            WB.Core.Infrastructure.EventBus.IEvent payload)            
+            WB.Core.Infrastructure.EventBus.IEvent payload,
+            bool needStoreToEventStore = true)            
         {
             _payload = payload;
             _initialVersionOfEventSource = initialVersionOfEventSource;
@@ -110,6 +113,7 @@ namespace Ncqrs.Eventing
             _eventSequence = eventSequence;
             _eventIdentifier = eventIdentifier;
             _eventTimeStamp = eventTimeStamp;
+            NeedStoreToEventStore = needStoreToEventStore;
         }
 
         public override string ToString()

@@ -53,6 +53,8 @@ namespace Ncqrs.Eventing
         /// <value>A number that represents the order of where this events occurred in the sequence.</value>
         public int EventSequence => this._eventSequence;
 
+        public bool IsStored { get; private set; }
+
         public CommittedEvent(Guid commitId, 
             string origin, 
             Guid eventIdentifier, 
@@ -60,7 +62,8 @@ namespace Ncqrs.Eventing
             int eventSequence, 
             DateTime eventTimeStamp, 
             long? globalSequence,
-            WB.Core.Infrastructure.EventBus.IEvent payload)            
+            WB.Core.Infrastructure.EventBus.IEvent payload,
+            bool isStored = true)            
         {
             if(globalSequence != null)
                 GlobalSequence = globalSequence.Value;
@@ -72,8 +75,9 @@ namespace Ncqrs.Eventing
             _eventSequence = eventSequence;
             _eventIdentifier = eventIdentifier;
             _eventTimeStamp = eventTimeStamp;
+            IsStored = isStored;
         }
-
+        
         public override string ToString() => $"{this.Payload.GetType().FullName}[{this.EventIdentifier:D}]";
     }
 }

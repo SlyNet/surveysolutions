@@ -86,17 +86,20 @@ namespace WB.Infrastructure.Native.Storage.Postgre.Implementation
             {
                 foreach (var @event in eventStream)
                 {
-                    var eventString = JsonConvert.SerializeObject(@event.Payload, Formatting.Indented,
-                        EventSerializerSettings.BackwardCompatibleJsonSerializerSettings);
+                    if (@event.NeedStoreToEventStore)
+                    {
+                        var eventString = JsonConvert.SerializeObject(@event.Payload, Formatting.Indented,
+                            EventSerializerSettings.BackwardCompatibleJsonSerializerSettings);
 
-                    writer.StartRow();
-                    writer.Write(@event.EventIdentifier, NpgsqlDbType.Uuid);
-                    writer.Write(@event.Origin, NpgsqlDbType.Text);
-                    writer.Write(@event.EventTimeStamp, NpgsqlDbType.Timestamp);
-                    writer.Write(@event.EventSourceId, NpgsqlDbType.Uuid);
-                    writer.Write(eventString, NpgsqlDbType.Jsonb);
-                    writer.Write(@event.EventSequence, NpgsqlDbType.Integer);
-                    writer.Write(@event.Payload.GetType().Name, NpgsqlDbType.Text);
+                        writer.StartRow();
+                        writer.Write(@event.EventIdentifier, NpgsqlDbType.Uuid);
+                        writer.Write(@event.Origin, NpgsqlDbType.Text);
+                        writer.Write(@event.EventTimeStamp, NpgsqlDbType.Timestamp);
+                        writer.Write(@event.EventSourceId, NpgsqlDbType.Uuid);
+                        writer.Write(eventString, NpgsqlDbType.Jsonb);
+                        writer.Write(@event.EventSequence, NpgsqlDbType.Integer);
+                        writer.Write(@event.Payload.GetType().Name, NpgsqlDbType.Text);
+                    }
 
                     var committedEvent = new CommittedEvent(eventStream.CommitId,
                         @event.Origin,
@@ -105,7 +108,8 @@ namespace WB.Infrastructure.Native.Storage.Postgre.Implementation
                         @event.EventSequence,
                         @event.EventTimeStamp,
                         null,
-                        @event.Payload);
+                        @event.Payload,
+                        @event.NeedStoreToEventStore);
                     result.Add(committedEvent);
                 }
 
