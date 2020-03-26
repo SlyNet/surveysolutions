@@ -70,7 +70,7 @@ namespace WB.Tests.Integration.CommandServiceTests
                     return new CommittedEventStream(eventStream.SourceId);
                 });
 
-            commandService = Abc.Create.Service.CommandService(repository: repository, eventBus: eventBusMock.Object, eventStore:eventStore.Object);
+            commandService = Abc.Create.Service.CommandService(repository: repository, eventBus: eventBusMock.Object);
             BecauseOf();
         }
 

@@ -3,20 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using Moq;
+using Ncqrs.Domain.Storage;
+using Ncqrs.Eventing;
 using Ncqrs.Eventing.ServiceModel.Bus;
 using Ncqrs.Eventing.Storage;
 using Ncqrs.Spec;
 using NUnit.Framework;
+using WB.Core.GenericSubdomains.Portable.ServiceLocation;
 using WB.Core.Infrastructure.Aggregates;
 using WB.Core.Infrastructure.CommandBus;
 using WB.Core.SharedKernels.DataCollection;
 using WB.Core.SharedKernels.DataCollection.Commands.Interview;
 using WB.Core.SharedKernels.DataCollection.Events.Interview;
 using WB.Core.SharedKernels.DataCollection.Implementation.Aggregates;
+using WB.Core.SharedKernels.DataCollection.Repositories;
 using WB.Core.SharedKernels.Questionnaire.Documents;
 using WB.Core.SharedKernels.QuestionnaireEntities;
 using WB.Tests.Abc;
+using WB.Tests.Abc.TestFactories;
 using WB.Tests.Integration.CommandServiceTests;
+using IEvent = WB.Core.Infrastructure.EventBus.IEvent;
 
 namespace WB.Tests.Integration.InterviewTests.Substitution
 {
@@ -60,29 +66,93 @@ namespace WB.Tests.Integration.InterviewTests.Substitution
                 var repository = Mock.Of<IEventSourcedAggregateRootRepository>(_
                     => _.GetLatest(typeof(StatefulInterview), interview.Id) == interview);
 
-                var eventStoreMock = new Mock<IEventStore>();
-                var eventBusMock = new Mock<IEventBus>();
+                using var eventContext = new EventContext();
+                var eventStore = new InMemoryEventStore();
+                var eventBus = Create.Service.LiteEventBus(eventStore: eventStore);
 
-                var commandService = Create.Service.CommandService(repository: repository, eventBus: eventBusMock.Object,
-                    eventStore: eventStoreMock.Object);
+                var commandService = Create.Service.CommandService(repository: repository, eventBus: eventBus);
 
                 // Act
-                commandService.Execute(new .DoNothing(), null);
-
-
-                using var eventContext = new EventContext();
-                interview.AnswerTextQuestion(Guid.NewGuid(), Id.g1, RosterVector.Empty, DateTimeOffset.Now, "same text");
+                commandService.Execute(Create.Command.AnswerTextQuestionCommand(interview.Id, Guid.NewGuid(), Id.g1, "answer text"), null);
 
                 var substitutionTitlesChangedEvent = eventContext.GetSingleEvent<SubstitutionTitlesChanged>();
+                var eventsInStore = eventStore.Read(interview.Id, 0);
+
                 return new
                 {
                     HasSubstitutionTitlesChangedEvent = substitutionTitlesChangedEvent != null,
-                    EventStoreDontHaveSubstitutionTitlesChangedEvent = true
+                    EventStoreDontHaveSubstitutionTitlesChangedEvent = !eventsInStore.Any(e => e.Payload is SubstitutionTitlesChanged)
                 };
             });
 
             Assert.That(results.HasSubstitutionTitlesChangedEvent, Is.True);
             Assert.That(results.EventStoreDontHaveSubstitutionTitlesChangedEvent, Is.True);
+        }
+
+        [Test]
+        public void when_load_interview_without_substitution_events_should_set_correct_text_in_all_places()
+        {
+            var userId = Guid.NewGuid();
+            var interviewId = Guid.NewGuid();
+            int sequenceCounter = 1;
+            var questionnaireIdentity = Create.Entity.QuestionnaireIdentity(Id.gA, 1);
+
+            var results = Execute.InStandaloneAppDomain(appDomainContext.Domain, () =>
+            {
+                SetUp.MockedServiceLocator();
+
+                var questionnaireDocument = Create.Entity.QuestionnaireDocumentWithOneChapter(
+                    Create.Entity.TextQuestion(Id.g1, variable: "text"),
+                    Create.Entity.NumericIntegerQuestion(Id.g2, variable: "num", questionText: "%text% correct?")
+                );
+                questionnaireDocument.IsUsingExpressionStorage = true;
+                var questionnaire = Create.Entity.PlainQuestionnaire(questionnaireDocument, questionnaireIdentity.Version,
+                    questionOptionsRepository: Mock.Of<IQuestionOptionsRepository>());
+                questionnaire.ExpressionStorageType = GetInterviewExpressionStorage(appDomainContext.AssemblyLoadContext, questionnaireDocument).GetType();
+
+                var questionnaireRepository = Create.Fake.QuestionnaireRepositoryWithOneQuestionnaire(
+                                                  questionnaireIdentity.QuestionnaireId,
+                                                  questionnaire,
+                                                  questionnaireIdentity.Version);
+                SetUp.InstanceToMockedServiceLocator(questionnaireRepository);
+
+                var interviewLocator = new StatefulInterview(
+                    Create.Service.SubstitutionTextFactory(),
+                    Create.Service.InterviewTreeBuilder(),
+                    Mock.Of<IQuestionOptionsRepository>()
+                );
+                interviewLocator.ServiceLocatorInstance = ServiceLocator.Current;
+                SetUp.InstanceToMockedServiceLocator<StatefulInterview>(interviewLocator);
+
+                ServiceFactory factory = new ServiceFactory();
+                var eventStore = new InMemoryEventStore();
+                var events = new IEvent[]
+                {
+                    Create.Event.InterviewCreated(),
+                    Create.Event.SupervisorAssigned(userId, Id.gA),
+                    Create.Event.InterviewerAssigned(userId, Id.gB),
+                    Create.Event.TextQuestionAnswered(userId: userId, questionId: Id.g1, answer: "test answer"),
+                };
+                eventStore.Store(new UncommittedEventStream(null, events.Select(e =>
+                    new UncommittedEvent(Guid.NewGuid(),
+                        interviewId,
+                        sequenceCounter++,
+                        0,
+                        DateTime.UtcNow,
+                        e))));
+                var repository = new DomainRepository(ServiceLocator.Current);
+                var aggregateRootRepository = factory.EventSourcedAggregateRootRepository(eventStore, repository);
+                var interview = (StatefulInterview)aggregateRootRepository.GetLatest(typeof(StatefulInterview), interviewId);
+
+                var titleText = interview.GetTitleText(Create.Identity(Id.g2));
+
+                return new
+                {
+                    TitleText = titleText,
+                };
+            });
+
+            Assert.That(results.TitleText, Is.EqualTo("test answer correct?"));
         }
     }
 }

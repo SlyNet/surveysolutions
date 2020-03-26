@@ -126,7 +126,9 @@ namespace Ncqrs.Eventing.Sourcing
 
         protected internal virtual void ApplyEvent(WB.Core.Infrastructure.EventBus.IEvent evnt)
         {
-            var eventSequence = GetNextSequence();
+            var eventSequence = IsShouldStoreEvent(evnt) 
+                ? GetNextSequence()
+                : GetLastSequence();
             var wrappedEvent = new UncommittedEvent(Guid.NewGuid(), EventSourceId, eventSequence, _initialVersion, DateTime.UtcNow, evnt);
 
             try
@@ -159,6 +161,8 @@ namespace Ncqrs.Eventing.Sourcing
         
             return Interlocked.Increment(ref _currentVersion);
         }
+
+        private int GetLastSequence() => _currentVersion;
 
         private void ApplyEventFromHistory(CommittedEvent evnt)
         {

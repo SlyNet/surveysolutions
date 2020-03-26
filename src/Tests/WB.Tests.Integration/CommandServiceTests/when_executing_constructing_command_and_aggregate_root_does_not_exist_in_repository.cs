@@ -92,7 +92,7 @@ namespace WB.Tests.Integration.CommandServiceTests
                 });
 
 
-            commandService = Abc.Create.Service.CommandService(repository: repository, eventBus: eventBus, serviceLocator: serviceLocator, eventStore : eventStore.Object);
+            commandService = Abc.Create.Service.CommandService(repository: repository, eventBus: eventBus, serviceLocator: serviceLocator);
 
             BecauseOf();
         }

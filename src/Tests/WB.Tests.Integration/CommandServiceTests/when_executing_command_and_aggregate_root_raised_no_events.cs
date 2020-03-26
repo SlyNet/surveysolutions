@@ -36,8 +36,7 @@ namespace WB.Tests.Integration.CommandServiceTests
             var repository = Mock.Of<IEventSourcedAggregateRootRepository>(_
                 => _.GetLatest(typeof(Aggregate), aggregateId) == aggregateFromRepository);
 
-            commandService = Create.Service.CommandService(repository: repository, eventBus: eventBusMock.Object,  
-                eventStore: eventStoreMock.Object);
+            commandService = Create.Service.CommandService(repository: repository, eventBus: eventBusMock.Object);
 
             // Act
             commandService.Execute(new DoNothing(), null);
