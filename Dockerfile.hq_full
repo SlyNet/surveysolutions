@@ -17,6 +17,22 @@ COPY src/Core/BoundedContexts/Headquarters/WB.Core.BoundedContexts.Headquarters/
 WORKDIR /src/UI/WB.UI.Frontend
 RUN  npm run build -- --modern --package
 
+FROM mcr.microsoft.com/dotnet/core/sdk:${DOTNET_VERSION} as export_builder
+ARG EXPORT_BUILD
+ARG GIT_BRANCH
+
+COPY libs /libs
+COPY src/Core/Infrastructure/WB.Infrastructure.AspNetCore src/Core/Infrastructure/WB.Infrastructure.AspNetCore
+COPY src/Services /src/Services
+COPY src/.version /src
+COPY src/Directory.Build.props /src
+COPY src/Directory.Build.targets /src
+
+RUN dotnet publish src/Services/Export/WB.Services.Export.Host \
+    -c Release -o /export \
+    --version-suffix $GIT_BRANCH \
+    /p:BuildNumber=$EXPORT_BUILD
+
 FROM mcr.microsoft.com/dotnet/core/sdk:${DOTNET_VERSION} as builder
 
 ARG HQ_BUILD
@@ -50,10 +66,11 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Labels.
-LABEL org.opencontainers.image.title="Headquarters"
-LABEL org.opencontainers.image.description="Survey Solutions Headquarters"
+LABEL org.opencontainers.image.title="Headquarets All in One"
+LABEL org.opencontainers.image.description="Survey Solutions Headquarters with Export Service"
 
 COPY --from=builder hq /app
+COPY --from=builder export /app/Export.Service
 
 ENV HQ_Headquarters__BaseUrl=http://localhost
 ENV HQ_Headquarters__TenantName=survey
