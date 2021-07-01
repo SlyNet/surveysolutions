@@ -1,5 +1,5 @@
 * text=auto
-
+*.bsl linguist-vendored=false
 # Windows forced line-endings
 *.sln crlf
 
